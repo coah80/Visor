@@ -27,6 +27,7 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.screens.Overlay;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -89,6 +90,9 @@ public abstract class MinecraftMixin implements MinecraftExtension {
     public LocalPlayer player;
 
     @Shadow
+    public MultiPlayerGameMode gameMode;
+
+    @Shadow
     public abstract Entity getCameraEntity();
 
     @Shadow
@@ -137,7 +141,7 @@ public abstract class MinecraftMixin implements MinecraftExtension {
      */
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;tick()V"), method = "runTick")
     public void visor$preTick(CallbackInfo ci) {
-        if(ClientContext.visor != null) {
+        if (ClientContext.visor != null && !visor$isLevelTearingDown()) {
             ClientContext.visor.preTickVR();
         }
     }
@@ -147,9 +151,13 @@ public abstract class MinecraftMixin implements MinecraftExtension {
      *
      * @param info s
      */
-    @Inject(at = @At("HEAD"), method = "tick()V")
+    @Inject(at = @At("HEAD"), method = "tick()V", cancellable = true)
     public void visor$tick(CallbackInfo info) {
-        if(ClientContext.visor != null) {
+        if (visor$isLevelTearingDown()) {
+            info.cancel();
+            return;
+        }
+        if (ClientContext.visor != null) {
             ClientContext.visor.tickVR();
         }
     }
@@ -161,9 +169,13 @@ public abstract class MinecraftMixin implements MinecraftExtension {
      */
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;tick()V", shift = Shift.AFTER), method = "runTick")
     public void visor$postTick(CallbackInfo ci) {
-        if(ClientContext.visor != null) {
+        if (ClientContext.visor != null && !visor$isLevelTearingDown()) {
             ClientContext.visor.postTickVR();
         }
+    }
+
+    private boolean visor$isLevelTearingDown() {
+        return this.level != null && (this.gameMode == null || this.player == null);
     }
 
 
@@ -181,7 +193,7 @@ public abstract class MinecraftMixin implements MinecraftExtension {
     @Inject(at = @At("HEAD"), method = "runTick(Z)V")
     public void visor$runVR(boolean tick, CallbackInfo callback) {
         VisorState.updateState();
-        if(ClientContext.visor != null) {
+        if (ClientContext.visor != null && !visor$isLevelTearingDown()) {
             ClientContext.visor
                     .onGameLoopStart();
         }
@@ -189,7 +201,7 @@ public abstract class MinecraftMixin implements MinecraftExtension {
 
     @Inject(method = "runTick", at = @At(value = "CONSTANT", args = "stringValue=render"))
     public void visor$preRenderVR(boolean tick, CallbackInfo callback) {
-        if(ClientContext.visor != null) {
+        if (ClientContext.visor != null && !visor$isLevelTearingDown()) {
             ClientContext.visor
                     .preRenderVR(
                             new PreRenderContext(
@@ -209,6 +221,16 @@ public abstract class MinecraftMixin implements MinecraftExtension {
      */
     @ModifyArg(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;render(FJZ)V"), method = "runTick")
     public boolean visor$startVRGuiPhase(boolean renderLevel) {
+        if (visor$isLevelTearingDown()) {
+            return false;
+        }
+
+        renderLevel = renderLevel
+                && this.level != null
+                && this.player != null
+                && this.gameMode != null
+                && this.getCameraEntity() != null;
+
         if (VisorState.get().isActive()) {
 
             ClientContext.renderer.onGameRenderStart(renderLevel);
@@ -231,7 +253,7 @@ public abstract class MinecraftMixin implements MinecraftExtension {
      */
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/util/profiling/ProfilerFiller;pop()V", ordinal = 4, shift = Shift.AFTER), method = "runTick", locals = LocalCapture.CAPTURE_FAILHARD)
     public void visor$renderVR(boolean renderLevel, CallbackInfo ci, long nanoTime) {
-        if (ClientContext.visor != null) {
+        if (ClientContext.visor != null && !visor$isLevelTearingDown()) {
             ClientContext.visor
                     .renderVR(
                             new RenderContext(

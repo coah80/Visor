@@ -8,6 +8,7 @@ import me.phoenixra.atumvr.api.enums.EyeType;
 import me.phoenixra.atumvr.api.rendering.AtumVRRenderContext;
 import me.phoenixra.atumvr.api.rendering.AtumVRScene;
 import me.phoenixra.atumvr.api.utils.GLUtils;
+import me.phoenixra.atumvr.core.session.platform.XRPlatform;
 import org.vmstudio.visor.api.client.render.VRRenderPass;
 import org.vmstudio.visor.api.client.render.VRRenderer;
 import org.vmstudio.visor.core.client.render.context.RenderContext;
@@ -29,7 +30,6 @@ public class VisorScene implements AtumVRScene {
 
     @Getter
     private VRRenderer renderer;
-
 
     public VisorScene(VRRenderer renderer) {
         this.renderer = renderer;
@@ -97,7 +97,9 @@ public class VisorScene implements AtumVRScene {
         profiler.push("VR mirror");
         VRRenderState.startVRMirrorPhase();
         MC.mainRenderTarget.bindWrite(true);
-        MirrorHelper.drawMirror();
+        if (!XRPlatform.isAndroid()) {
+            MirrorHelper.drawMirror();
+        }
         profiler.pop();
         GLUtils.checkGLError("post mirror");
 

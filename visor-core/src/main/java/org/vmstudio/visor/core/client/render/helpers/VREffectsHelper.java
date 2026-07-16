@@ -23,6 +23,14 @@ import org.vmstudio.visor.core.client.render.VRShaders;
 import org.vmstudio.visor.core.client.render.shaders.VRShaderInBlockVignette;
 
 public class VREffectsHelper {
+    private static final Matrix4f FULLSCREEN_MATRIX = new Matrix4f()
+            .m00(1.0F)
+            .m11(1.0F)
+            .m22(-1.0F)
+            .m33(1.0F)
+            .m32(-1.0F);
+    private static final Matrix4f ORTHO_MATRIX = new Matrix4f();
+
     private VREffectsHelper() {
         throw new UnsupportedOperationException("This is an utility class and cannot be instantiated");
     }
@@ -36,12 +44,7 @@ public class VREffectsHelper {
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tesselator.getBuilder();
         // orthographic matrix
-        Matrix4f mat = new Matrix4f();
-        mat.m00(1.0F);
-        mat.m11(1.0F);
-        mat.m22(-1.0F);
-        mat.m33(1.0F);
-        mat.m32(-1.0F);
+        Matrix4f mat = FULLSCREEN_MATRIX;
 
         // --- Setup ---
         RenderSystem.setShader(GameRenderer::getPositionShader);
@@ -79,12 +82,7 @@ public class VREffectsHelper {
         // --- Prepare variables ---
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferbuilder = tesselator.getBuilder();
-        Matrix4f mat = new Matrix4f();
-        mat.m00(1.0F);
-        mat.m11(1.0F);
-        mat.m22(-1.0F);
-        mat.m33(1.0F);
-        mat.m32(-1.0F);
+        Matrix4f mat = FULLSCREEN_MATRIX;
 
         // --- Setup ---
         RenderSystem.setShader(() -> shader);
@@ -135,6 +133,11 @@ public class VREffectsHelper {
     public static void doStencil(boolean inverse) {
         Minecraft mc = Minecraft.getInstance();
         RenderTarget rt = mc.getMainRenderTarget();
+        VRRenderPass eye = VRRenderState.getRenderPass();
+        float[] maskVerts = getStencilMask(eye);
+        if (maskVerts == null || maskVerts.length < 6) {
+            return;
+        }
 
         // 1) backup shader + matrices
         RenderSystem.backupProjectionMatrix();
@@ -149,8 +152,6 @@ public class VREffectsHelper {
             applyOrthoProjection(rt, inverse);
 
             // draw hidden‐area triangles into the stencil
-            VRRenderPass eye = VRRenderState.getRenderPass();
-            float[] maskVerts = getStencilMask(eye);
             drawStencilMask(maskVerts);
 
         } finally {
@@ -203,8 +204,7 @@ public class VREffectsHelper {
 
     private static void applyOrthoProjection(RenderTarget rt, boolean inverse) {
 
-        Matrix4f ortho = new Matrix4f()
-                .setOrtho(0, rt.viewWidth, 0, rt.viewHeight, 0, 20f);
+        Matrix4f ortho = ORTHO_MATRIX.setOrtho(0, rt.viewWidth, 0, rt.viewHeight, 0, 20f);
         RenderSystem.setProjectionMatrix(ortho, VertexSorting.ORTHOGRAPHIC_Z);
 
         if (inverse) {

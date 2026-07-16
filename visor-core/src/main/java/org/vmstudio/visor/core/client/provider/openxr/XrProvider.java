@@ -10,7 +10,6 @@ import org.vmstudio.visor.core.client.ClientContext;
 import org.vmstudio.visor.core.client.VisorClientImpl;
 import org.vmstudio.visor.core.client.provider.openxr.render.XrRenderer;
 import org.jetbrains.annotations.NotNull;
-
 import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
 
 public class XrProvider extends XRProvider {
@@ -22,6 +21,11 @@ public class XrProvider extends XRProvider {
 
         ClientContext.rawPoseHandler = new XrRawPoseHandler(this);
         ClientContext.inputProvider = inputHandler;
+    }
+
+    @Override
+    public float getPreferredRefreshRate() {
+        return QuestVLoader.isQuest3Family() ? 120.0F : 72.0F;
     }
 
     @Override

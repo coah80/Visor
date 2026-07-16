@@ -42,8 +42,8 @@ float vignetteMask(vec2 uv) {
     return smoothstep(inner2, outer2, d2);
 }
 
-void main(){
 
+void main(){
     vec4 color = texture(Sampler0, texCoordinates.st);
 
     // --- Apply all tints

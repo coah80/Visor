@@ -64,13 +64,13 @@ public class VROverlayHUD extends VROverlayTemplateFrameBuffer implements VREven
     @Override
     public void onRender(float partialTicks) {
         RenderTarget src = ClientContext.renderer.guiTarget.getTarget();
-        updateRegionTargetFromSource(src);
+        updateRegionTargetFromSource(src, true);
     }
 
     @Override
     public void onPreTick() {
         RenderTarget src = ClientContext.renderer.guiTarget.getTarget();
-        updateRegionTargetFromSource(src);
+        updateRegionTargetFromSource(src, false);
         super.onPreTick();
     }
 
@@ -90,7 +90,7 @@ public class VROverlayHUD extends VROverlayTemplateFrameBuffer implements VREven
         return hudLayerProperty.getValue();
     }
 
-    private void updateRegionTargetFromSource(RenderTarget src) {
+    private void updateRegionTargetFromSource(RenderTarget src, boolean copyPixels) {
         if (src == null) {
             this.renderTarget = null;
             return;
@@ -125,6 +125,10 @@ public class VROverlayHUD extends VROverlayTemplateFrameBuffer implements VREven
             regionTarget.resize(rw, rh, true);
         }
 
+        this.renderTarget = regionTarget;
+        if (!copyPixels) {
+            return;
+        }
 
         GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, src.frameBufferId);
         GlStateManager._glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, regionTarget.frameBufferId);
@@ -142,7 +146,6 @@ public class VROverlayHUD extends VROverlayTemplateFrameBuffer implements VREven
         RenderStateHelper.restoreAfterExternalRender();
 
         // Use the cropped texture as the overlay render target
-        this.renderTarget = regionTarget;
     }
 
     @Override

@@ -308,6 +308,11 @@ public class VROverlaySettings extends VROverlayScreen
     }
 
     @Override
+    public boolean supportsRetainedTexture() {
+        return true;
+    }
+
+    @Override
     public void onEnable() {
         VROverlayHelper.applyPose(
                 this,

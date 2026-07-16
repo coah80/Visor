@@ -15,6 +15,8 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
 
 import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
 
@@ -38,14 +40,13 @@ public class VRShaderPostProcessEye implements VRShader{
     private AbstractUniform uTintBlue;
     private AbstractUniform uTintBlack;
 
-
+    private boolean loggedFramebufferColorState;
 
     @Override
     public void init() throws Exception {
         handle = new ShaderInstance(Minecraft.getInstance().getResourceManager(), "vr_post_process_eye", DefaultVertexFormat.POSITION_TEX);
 
         uniformEye = handle.safeGetUniform("uEye");
-
         uTintRed = handle.safeGetUniform("uTintRed");
         uTintBlue = handle.safeGetUniform("uTintBlue");
         uTintBlack = handle.safeGetUniform("uTintBlack");
@@ -62,14 +63,19 @@ public class VRShaderPostProcessEye implements VRShader{
                           RenderTarget source,
                           float partialTicks) {
         if (eye == EyeType.LEFT) {
-            // update state only for the first rendered eye,
-            // to have synchronized effects for both
             updateUniforms(partialTicks);
         }
 
         uniformEye.set(eye == EyeType.LEFT ? 1 : -1);
 
-
+        if (!loggedFramebufferColorState) {
+            org.vmstudio.visor.core.client.VisorClientImpl.LOGGER.info(
+                    "Final eye framebuffer sRGB was {} before correction",
+                    GL11.glIsEnabled(GL30.GL_FRAMEBUFFER_SRGB) ? "enabled" : "disabled"
+            );
+            loggedFramebufferColorState = true;
+        }
+        GL11.glDisable(GL30.GL_FRAMEBUFFER_SRGB);
         RenderShaderHelper.renderFullscreenQuad(handle, source);
 
         GLUtils.checkGLError("post process eye: "+ eye.name());
@@ -167,6 +173,7 @@ public class VRShaderPostProcessEye implements VRShader{
                 vignetteColor.getBlue(),
                 vignetteColor.getAlpha()
         );
+
     }
 
 }

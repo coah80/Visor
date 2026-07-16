@@ -5,7 +5,8 @@
   "compatibilityLevel": "JAVA_17",
   "client": [
     "MinecraftMixin",
-    "FabricGameRendererMixin"
+    "FabricGameRendererMixin",
+    "CreateWorldScreenMixin"
   ],
   "minVersion": "0.8.4",
   "mixins": [

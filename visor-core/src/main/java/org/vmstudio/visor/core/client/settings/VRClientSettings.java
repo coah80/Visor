@@ -127,6 +127,7 @@ public class VRClientSettings {
     protected static final float mirrorCrop = 0.15F;
     //
 
+
     @Getter
     @VROptionField(widgetType = VROptionWidgetType.DH_MIRROR_PASSES, key = "dh_mirror_passes")
     protected static boolean dhMirrorPasses = false;

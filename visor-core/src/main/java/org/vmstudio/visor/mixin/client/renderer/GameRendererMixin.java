@@ -309,6 +309,15 @@ public abstract class GameRendererMixin
 
     @WrapMethod(method = "pick")
     private void visor$vrPick(float partialTick, Operation<Void> original) {
+        if (this.minecraft.gameMode == null) {
+            if (this.minecraft.player != null) {
+                this.minecraft.hitResult = BlockHitResult.miss(this.minecraft.player.position(),
+                        this.minecraft.player.getDirection(), this.minecraft.player.blockPosition());
+            } else {
+                this.minecraft.hitResult = BlockHitResult.miss(Vec3.ZERO, Direction.UP, BlockPos.ZERO);
+            }
+            return;
+        }
         if(VisorState.get().isNotActive()){
             original.call(partialTick);
             return;
@@ -487,6 +496,9 @@ public abstract class GameRendererMixin
 
     @Redirect(at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/GameRenderer;renderHand:Z"), method = "renderLevel")
     public boolean visor$noVanillaHands(GameRenderer instance) {
+        if (minecraft.gameMode == null || minecraft.player == null) {
+            return false;
+        }
         if (VRRenderState.isSpectatedVRView(minecraft.getCameraEntity())) {
             return false;
         }

@@ -428,6 +428,20 @@ public interface VROverlay extends VisorComponent, PrioritySupporter {
         return false;
     }
 
+    default boolean supportsRetainedTexture() {
+        return false;
+    }
+
+    default boolean isTextureDirty() {
+        return true;
+    }
+
+    default void markTextureDirty() {
+    }
+
+    default void clearTextureDirty() {
+    }
+
     /**
      * If overlay is on a HUD layer or on a world layer
      * <p>

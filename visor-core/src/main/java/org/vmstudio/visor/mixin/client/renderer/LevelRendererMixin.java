@@ -232,7 +232,6 @@ public abstract class LevelRendererMixin implements ResourceManagerReloadListene
         }
 
         try {
-
             List<Long> toRemove = new ArrayList<>();
             destructionProgress.forEach((key, value) -> {
                 int stage = value.last().getProgress();

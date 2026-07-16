@@ -122,7 +122,9 @@ public abstract class VRRendererBase implements VRRenderer {
         RenderSystem.getModelViewStack().pushPose();
 
         ((GameRendererExtension)MC.gameRenderer).visor$setVRGuiVisible(
-                renderLevel && MC.getEntityRenderDispatcher().camera != null
+                MC.screen != null
+                        || MC.getOverlay() != null
+                        || renderLevel && MC.getEntityRenderDispatcher().camera != null
         );
     }
 

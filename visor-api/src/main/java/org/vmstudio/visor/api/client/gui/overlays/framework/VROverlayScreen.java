@@ -95,6 +95,8 @@ public abstract class VROverlayScreen extends Screen implements VROverlay {
 
     protected boolean initAgain;
 
+    private boolean textureDirty = true;
+
 
     private static long mouseDragDelay;
     private final boolean[] pressedDragMouseButtons = new boolean[3];
@@ -244,6 +246,7 @@ public abstract class VROverlayScreen extends Screen implements VROverlay {
 
     @Override
     public final void tick() {
+        markTextureDirty();
         onPreTick();
         boolean oldVisible = visible;
         var preVisible = optionsVisibility == null || optionsVisibility.isVisible();
@@ -321,6 +324,7 @@ public abstract class VROverlayScreen extends Screen implements VROverlay {
     @Override
     public void setEnabled(boolean flag) {
         if (flag == enabled) return;
+        markTextureDirty();
         if (flag) {
             enabled = true;
             updateSize();
@@ -344,6 +348,7 @@ public abstract class VROverlayScreen extends Screen implements VROverlay {
 
 
     public void updateSize(){
+        markTextureDirty();
         guiScaleFactor = VisorAPI.client().getGuiManager().calculateScale(
                 0,
                 getRequestedWidth(),
@@ -546,6 +551,10 @@ public abstract class VROverlayScreen extends Screen implements VROverlay {
                 (int) (rawY * (double) this.height)
         );
 
+        if (oldMouseX != cursorData.getCursorX() || oldMouseY != cursorData.getCursorY()) {
+            markTextureDirty();
+        }
+
         if(!activeCursor){
             return;
         }
@@ -594,6 +603,7 @@ public abstract class VROverlayScreen extends Screen implements VROverlay {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int buttonType) {
+        markTextureDirty();
         if (buttonType == 0 && isCursorOnResizeHandle(getRawMouseX(), getRawMouseY())) {
             startResizing();
             return true;
@@ -606,6 +616,7 @@ public abstract class VROverlayScreen extends Screen implements VROverlay {
     }
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int buttonType) {
+        markTextureDirty();
         if (buttonType == 0 && isBeingResized()) {
             stopResizing();
             return true;
@@ -618,6 +629,7 @@ public abstract class VROverlayScreen extends Screen implements VROverlay {
     }
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollDelta) {
+        markTextureDirty();
         return super.mouseScrolled(mouseX, mouseY, scrollDelta);
     }
 
@@ -629,16 +641,40 @@ public abstract class VROverlayScreen extends Screen implements VROverlay {
     public boolean mouseDragged(double mouseX, double mouseY,
                                 int buttonType,
                                 double deltaX, double deltaY) {
+        markTextureDirty();
         return super.mouseDragged(mouseX, mouseY, buttonType, deltaX, deltaY);
     }
 
     @Override
     public boolean keyReleased(int i, int j, int k) {
+        markTextureDirty();
         return super.keyReleased(i, j, k);
     }
     @Override
     public boolean charTyped(char chr, int modifiers) {
+        markTextureDirty();
         return super.charTyped(chr, modifiers);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        markTextureDirty();
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public boolean isTextureDirty() {
+        return textureDirty;
+    }
+
+    @Override
+    public void markTextureDirty() {
+        textureDirty = true;
+    }
+
+    @Override
+    public void clearTextureDirty() {
+        textureDirty = false;
     }
 
     @Override

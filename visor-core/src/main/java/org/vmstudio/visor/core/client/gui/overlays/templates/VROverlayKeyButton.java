@@ -93,6 +93,11 @@ public class VROverlayKeyButton extends VROverlayTemplateScreen {
     }
 
     @Override
+    public boolean supportsRetainedTexture() {
+        return true;
+    }
+
+    @Override
     public int getRequestedWidth() {
         return 200;
     }

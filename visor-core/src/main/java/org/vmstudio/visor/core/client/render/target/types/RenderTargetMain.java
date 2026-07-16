@@ -3,6 +3,7 @@ package org.vmstudio.visor.core.client.render.target.types;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import lombok.Getter;
 import me.phoenixra.atumvr.api.utils.GLUtils;
+import me.phoenixra.atumvr.core.session.platform.XRPlatform;
 import org.vmstudio.visor.core.client.VisorClientImpl;
 import org.vmstudio.visor.extensions.client.WindowExtension;
 import org.vmstudio.visor.extensions.client.render.RenderTargetExtension;
@@ -33,10 +34,14 @@ public class RenderTargetMain implements RenderTargetHolder {
         VisorClientImpl.LOGGER.info(this.target.toString());
 
         var mcWindow = (WindowExtension) (Object) MC.getWindow();
+        int mirrorWidth = XRPlatform.isAndroid()
+                ? 1 : mcWindow.visor$getActualScreenWidth();
+        int mirrorHeight = XRPlatform.isAndroid()
+                ? 1 : mcWindow.visor$getActualScreenHeight();
         this.mirrorTarget = new VRRenderTarget(
                 "Mirror",
-                mcWindow.visor$getActualScreenWidth(),
-                mcWindow.visor$getActualScreenHeight(),
+                mirrorWidth,
+                mirrorHeight,
                 true, () -> -1,
                 false, false
         );
@@ -56,8 +61,10 @@ public class RenderTargetMain implements RenderTargetHolder {
         target.resize(width, height, Minecraft.ON_OSX);
         var mcWindow = (WindowExtension) (Object) MC.getWindow();
         this.mirrorTarget.resize(
-                Math.max(1, mcWindow.visor$getActualScreenWidth()),
-                Math.max(1, mcWindow.visor$getActualScreenHeight()),
+                XRPlatform.isAndroid()
+                        ? 1 : Math.max(1, mcWindow.visor$getActualScreenWidth()),
+                XRPlatform.isAndroid()
+                        ? 1 : Math.max(1, mcWindow.visor$getActualScreenHeight()),
                 Minecraft.ON_OSX
         );
 
@@ -74,4 +81,5 @@ public class RenderTargetMain implements RenderTargetHolder {
             mirrorTarget = null;
         }
     }
+
 }

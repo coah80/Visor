@@ -19,6 +19,7 @@ import org.vmstudio.visor.compatibility.shaders.IrisVRBridge;
 import org.vmstudio.visor.extensions.client.WindowExtension;
 import org.vmstudio.visor.core.client.settings.VRClientSettings;
 import org.vmstudio.visor.core.client.settings.options.enums.MirrorMode;
+import me.phoenixra.atumvr.core.session.platform.XRPlatform;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
 import net.minecraft.client.gui.screens.ProgressScreen;
@@ -31,6 +32,11 @@ import java.util.List;
 import static org.vmstudio.visor.core.client.VisorClientImpl.MC;
 
 public class VRRenderState {
+
+    private static final List<VRRenderPass> ANDROID_PASSES = List.of(
+            VRRenderPass.EYE_LEFT,
+            VRRenderPass.EYE_RIGHT
+    );
 
     @Getter @NotNull
     private static RenderPhase phase = RenderPhase.VANILLA;
@@ -218,6 +224,10 @@ public class VRRenderState {
 
 
     public static List<VRRenderPass> getActivePasses() {
+
+        if (XRPlatform.isAndroid()) {
+            return ANDROID_PASSES;
+        }
 
 
         List<VRRenderPass> list = new ArrayList<>();

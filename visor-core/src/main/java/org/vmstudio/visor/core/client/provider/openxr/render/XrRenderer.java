@@ -14,6 +14,8 @@ import org.vmstudio.visor.core.client.render.VRRendererBase;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.lwjgl.PointerBuffer;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
 import org.lwjgl.openxr.*;
 import org.lwjgl.system.MemoryStack;
 
@@ -51,8 +53,15 @@ public class XrRenderer extends VRRendererBase {
     @Override
     public void init() throws Throwable {
         steamVRLinuxWorkaround = XRUtils.detectSteamVRLinux(vrProvider);
+        GL11.glDisable(GL30.GL_FRAMEBUFFER_SRGB);
 
         super.init();
+    }
+
+    @Override
+    public void destroy() {
+        GL11.glEnable(GL30.GL_FRAMEBUFFER_SRGB);
+        super.destroy();
     }
 
     @Override
@@ -160,7 +169,6 @@ public class XrRenderer extends VRRendererBase {
 
             this.swapIndex = intBuf2.get(0);
 
-            // Render view to the appropriate part of the swapchain image.
             for (EyeType eyeType : EyeType.values()) {
                 int index = eyeType.getIndex();
                 XrView xrView = vrProvider.getInputHandler()
@@ -225,7 +233,6 @@ public class XrRenderer extends VRRendererBase {
                             .environmentBlendMode(XR10.XR_ENVIRONMENT_BLEND_MODE_OPAQUE)
                             .layers(layers));
             vrProvider.checkXRError(error, "xrEndFrame", "");
-
             this.projectionLayerViews.close();
         }
 
@@ -234,8 +241,6 @@ public class XrRenderer extends VRRendererBase {
             GLUtils.drainGLErrors();
         }
     }
-
-
 
     @Override
     public Matrix4f getProjectionMatrix(EyeType eyeType, float nearClip, float farClip) {

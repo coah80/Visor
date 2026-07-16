@@ -42,7 +42,6 @@ public class XrRenderTarget extends RenderTarget {
                     colorTextureIndex
             );
 
-
             this.checkStatus();
             this.clear(getError);
             this.unbindRead();
@@ -50,4 +49,5 @@ public class XrRenderTarget extends RenderTarget {
             throw new IllegalArgumentException("Window " + width + "x" + height + " size out of bounds (max. size: " + maxSize + ")");
         }
     }
+
 }
